@@ -1,0 +1,59 @@
+{
+  "name": "velo-ai-receptionist",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n web,api -c cyan,green \"vite\" \"tsx watch server/index.ts\"",
+    "dev:web": "vite",
+    "dev:server": "tsx watch server/index.ts",
+    "build": "tsc -b && vite build && tsc -p tsconfig.server.json",
+    "start": "node dist-server/server/index.js",
+    "typecheck": "tsc -b --pretty false && tsc -p tsconfig.server.json --noEmit --pretty false",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "firebase:deploy": "firebase deploy --only firestore:rules,firestore:indexes",
+    "firebase:emulators": "firebase emulators:start",
+    "seed": "tsx scripts/seed.ts",
+    "seed:availability": "tsx scripts/seed-availability.ts",
+    "reset": "tsx scripts/reset.ts",
+    "grant-owner": "tsx scripts/grant-owner.ts"
+  },
+  "dependencies": {
+    "@google/genai": "latest",
+    "cors": "latest",
+    "express": "latest",
+    "firebase": "latest",
+    "firebase-admin": "latest",
+    "helmet": "latest",
+    "lucide-react": "^0.468.0",
+    "luxon": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "react-router-dom": "^7.18.4",
+    "zod": "latest"
+  },
+  "devDependencies": {
+    "@types/cors": "latest",
+    "@types/express": "latest",
+    "@types/luxon": "latest",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "@types/supertest": "latest",
+    "@vitejs/plugin-react": "latest",
+    "concurrently": "latest",
+    "firebase-tools": "latest",
+    "supertest": "latest",
+    "tsx": "latest",
+    "typescript": "^5.9.3",
+    "vite": "latest",
+    "vitest": "^4.0.17"
+  },
+  "overrides": {
+    "uuid": "^11.1.1"
+  }
+}

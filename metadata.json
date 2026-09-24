@@ -1,0 +1,5 @@
+{
+  "name": "Velo Auto Studio",
+  "description": "A voice AI receptionist for a fictional car-detailing studio.",
+  "requestFramePermissions": ["microphone"]
+}
