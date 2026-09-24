@@ -13,7 +13,7 @@ Velo is a fictional business. Names, services, prices, and seeded appointments a
 - Authenticated Node API with strict Zod bodies, unknown-field rejection, trusted business context, request IDs, origin validation, and bounded JSON input.
 - Gemini Live browser connection using a server-issued, constrained, one-use ephemeral token. The permanent key never enters the browser bundle.
 - Actual mono 16 kHz PCM microphone conversion, streamed 24 kHz PCM playback, one playback queue, captions, interruption clearing, and complete call cleanup.
-- Three model tools only: `get_business_details`, `list_availability`, and `prepare_booking`. The model cannot confirm a booking.
+- Four model tools only: `get_business_details`, `list_availability`, `find_next_availability`, and `prepare_booking`. The model cannot confirm a booking.
 - UID-bound, two-minute proposals and explicit on-screen confirmation.
 - Atomic Firestore confirmation with slot conflict protection, proposal/service/config validation, idempotent retries, and canonical receipts.
 - Guarded development seed/reset tools and a trusted owner-claim script.
@@ -41,11 +41,10 @@ Demo mode is for interface development. It uses a deliberately isolated in-memor
 
 ```bash
 npm install
-cp .env.example .env
 npm run dev
 ```
 
-Open `http://localhost:5173`. The API runs on port 3001 and Vite proxies `/api` to it.
+Open `http://localhost:3000`. Development uses one Express server on port 3000, with Vite mounted in middleware mode, so the interface and `/api` routes share the same origin. Demo mode uses the code defaults and does not require an `.env` file.
 
 ## Configure live mode
 
@@ -68,7 +67,21 @@ Open `http://localhost:5173`. The API runs on port 3001 and Vite proxies `/api` 
    firebase deploy --only firestore:rules,firestore:indexes
    ```
 
-The server deliberately fails if live mode is missing its Firebase project. A production process deliberately fails if `APP_MODE=demo`.
+For local live-mode work, create `.env` from the names in `.env.example` and include only populated values; do not commit it. The required live values are:
+
+| Variable | Purpose |
+| --- | --- |
+| `APP_MODE=live` | Enables the server's Firebase-backed booking store. |
+| `VITE_APP_MODE=live` | Enables Firebase Authentication and live API calls in the browser build. |
+| `FIREBASE_PROJECT_ID` | Selects the server-side Firestore project. |
+| `VITE_FIREBASE_*` | Supplies the Firebase public web-client configuration. |
+| `GEMINI_API_KEY` | Creates short-lived Gemini Live tokens on the server; never expose it as a `VITE_*` value. |
+| `GEMINI_LIVE_MODEL` | Selects the Live model available to the account. |
+| `ALLOWED_ORIGINS` | Comma-separated exact browser origins, such as `http://localhost:3000` and the deployed HTTPS origin. |
+
+`PORT` defaults to 3000 locally and is provided automatically by Cloud Run. `BUSINESS_ID` and `BUSINESS_TIMEZONE` default to `velo` and `Asia/Dubai`. `DEVELOPMENT_PROJECT_ID` and `ALLOW_DEMO_SEED` are safeguards for the trusted seed/reset scripts, not runtime requirements.
+
+The server deliberately fails if live mode is missing its Firebase project. A production process runs in live mode; ensure `VITE_APP_MODE=live` is also present at build time because Vite variables are compiled into the browser bundle.
 
 ## Seed a filming weekend
 
@@ -147,4 +160,4 @@ The lockfile is authoritative. At the initial implementation: `@google/genai` 2.
 
 ## Scope boundaries
 
-This first release has one business, one bay, one 60-minute service, website audio, and explicit confirmation. Telephone calls, payments, SMS, cancellations, variable-duration scheduling, verified customer contact details, and broader production reliability work are intentionally outside the tutorial scope.
+This first release has one business, one bay, three fixed 60-minute services, website audio, and explicit confirmation. Telephone calls, payments, SMS, cancellations, variable-duration scheduling, verified customer contact details, and broader production reliability work are intentionally outside the tutorial scope.
