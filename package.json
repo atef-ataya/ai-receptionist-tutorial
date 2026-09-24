@@ -7,11 +7,12 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "concurrently -k -n web,api -c cyan,green \"vite\" \"tsx watch server/index.ts\"",
+    "dev": "PORT=3000 tsx server.ts",
     "dev:web": "vite",
-    "dev:server": "tsx watch server/index.ts",
+    "dev:server": "PORT=3000 tsx server.ts",
     "build": "tsc -b && vite build && tsc -p tsconfig.server.json",
-    "start": "node dist-server/server/index.js",
+    "start": "tsx server.ts",
+    "lint": "tsc -b --pretty false && tsc -p tsconfig.server.json --noEmit --pretty false",
     "typecheck": "tsc -b --pretty false && tsc -p tsconfig.server.json --noEmit --pretty false",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -34,6 +35,7 @@
     "react": "latest",
     "react-dom": "latest",
     "react-router-dom": "^7.18.4",
+    "tsx": "latest",
     "zod": "latest"
   },
   "devDependencies": {
@@ -48,7 +50,6 @@
     "concurrently": "latest",
     "firebase-tools": "latest",
     "supertest": "latest",
-    "tsx": "latest",
     "typescript": "^5.9.3",
     "vite": "latest",
     "vitest": "^4.0.17"

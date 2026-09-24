@@ -1,5 +1,6 @@
 {
   "name": "Velo Auto Studio",
   "description": "A voice AI receptionist for a fictional car-detailing studio.",
-  "requestFramePermissions": ["microphone"]
+  "requestFramePermissions": ["microphone"],
+  "capabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

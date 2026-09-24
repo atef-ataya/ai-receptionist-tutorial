@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { GoogleGenAI } from "@google/genai";
 import cors from "cors";
 import express, { type ErrorRequestHandler } from "express";
@@ -26,12 +25,26 @@ export function createApp(config: ServerConfig, storeOverride?: BookingStore) {
 
   app.disable("x-powered-by");
   app.use(helmet({ contentSecurityPolicy: false }));
-  app.use(cors({ origin(origin, callback) { callback(null, !origin || config.allowedOrigins.includes(origin)); }, credentials: false }));
+  app.use(cors({
+    origin(origin, callback) {
+      if (!origin) return callback(null, true);
+      const isAllowed = config.allowedOrigins.includes(origin) ||
+        origin.startsWith("http://localhost:") ||
+        origin.endsWith(".run.app");
+      callback(null, isAllowed);
+    },
+    credentials: false
+  }));
   app.use(express.json({ limit: "32kb" }));
   app.use((req, res, next) => { res.locals.requestId = req.header("x-request-id") || randomUUID(); res.setHeader("x-request-id", res.locals.requestId); next(); });
   app.use((req, _res, next) => {
     const origin = req.header("origin");
-    if (origin && req.method !== "GET" && !config.allowedOrigins.includes(origin)) return next(new AppError(403, "FORBIDDEN", "This request origin is not allowed."));
+    if (origin && req.method !== "GET") {
+      const host = req.get("host");
+      const isSameHost = host ? (origin === `http://${host}` || origin === `https://${host}`) : false;
+      const isAllowed = config.allowedOrigins.includes(origin) || isSameHost || origin.endsWith(".run.app");
+      if (!isAllowed) return next(new AppError(403, "FORBIDDEN", "This request origin is not allowed."));
+    }
     next();
   });
 
@@ -88,10 +101,12 @@ export function createApp(config: ServerConfig, storeOverride?: BookingStore) {
   });
 
   if (config.NODE_ENV === "production") {
-    const currentDir = path.dirname(fileURLToPath(import.meta.url));
-    const clientDir = path.resolve(currentDir, "../../dist");
+    const clientDir = path.resolve(process.cwd(), "dist");
     app.use(express.static(clientDir, { index: false, maxAge: "1y", immutable: true }));
-    app.use((_req, res) => res.sendFile(path.join(clientDir, "index.html")));
+    app.use((req, res, next) => {
+      if (req.method !== "GET" || req.path.startsWith("/api")) return next();
+      res.sendFile(path.join(clientDir, "index.html"));
+    });
   }
 
   const errorHandler: ErrorRequestHandler = (error, req, res, _next) => {
